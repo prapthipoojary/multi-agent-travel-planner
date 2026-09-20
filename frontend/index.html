@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AI Travel Planner</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: 38px;
+        }
+
+        .hero p {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            margin-top: 25px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+        }
+
+        .result-card h3 {
+            margin-top: 0;
+        }
+
+        .cost {
+            font-weight: bold;
+        }
+
+        .error {
+            border-left: 5px solid #ef4444;
+        }
+
+        .loading {
+            border-left: 5px solid #2563eb;
+        }
+
+        ul {
+            padding-left: 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .recommendation-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .recommendation-item {
+            background: #f4f7fb;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 18px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .budget-text {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+
+            .container {
+                margin: 15px auto;
+                padding: 12px;
+            }
+
+            .hero {
+                padding: 25px 15px;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="hero">
+        <h1>✈️ AI Travel Planner</h1>
+        <p>Plan your perfect trip with multiple AI agents</p>
+    </div>
+
+    <div class="form-card">
+
+        <div class="form-group">
+            <label>📍 Destination</label>
+
+            <input
+                type="text"
+                id="destination"
+                placeholder="e.g. Goa"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label>💰 Budget</label>
+
+            <input
+                type="number"
+                id="budget"
+                placeholder="e.g. 10000"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label>📅 Start Date</label>
+
+            <input
+                type="date"
+                id="start_date"
+            >
+        </div>
+
+
+        <div class="form-group">
+            <label>📅 End Date</label>
+
+            <input
+                type="date"
+                id="end_date"
+            >
+        </div>
+
+
+        <button onclick="planTrip()">
+            ✈️ Plan My Trip
+        </button>
+
+    </div>
+
+
+    <div id="result"></div>
+
+</div>
+
+
+<script>
+
+async function planTrip() {
+
+    const destination =
+        document.getElementById("destination").value.trim();
+
+    const budget =
+        Number(document.getElementById("budget").value);
+
+    const startDate =
+        document.getElementById("start_date").value;
+
+    const endDate =
+        document.getElementById("end_date").value;
+
+
+    /* Check empty fields */
+
+    if (!destination || !budget || !startDate || !endDate) {
+
+        document.getElementById("result").innerHTML = `
+            <div class="result-card error">
+
+                <h3>⚠️ Please fill in all details</h3>
+
+                <p>
+                    Enter your destination, budget,
+                    start date and end date.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    /* Check budget */
+
+    if (budget <= 0) {
+
+        document.getElementById("result").innerHTML = `
+            <div class="result-card error">
+
+                <h3>⚠️ Invalid Budget</h3>
+
+                <p>
+                    Please enter a budget greater than ₹0.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    /* Check dates */
+
+    if (endDate < startDate) {
+
+        document.getElementById("result").innerHTML = `
+            <div class="result-card error">
+
+                <h3>⚠️ Invalid Dates</h3>
+
+                <p>
+                    End date cannot be earlier than start date.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const data = {
+
+        destination: destination,
+
+        budget: budget,
+
+        start_date: startDate,
+
+        end_date: endDate
+
+    };
+
+
+    /* Loading message */
+
+    document.getElementById("result").innerHTML = `
+        <div class="result-card loading">
+
+            <h3>
+                ⏳ AI agents are planning your trip...
+            </h3>
+
+            <p>
+                Transport, Hotel, Activity, Food, Budget
+                and Contingency agents are working together.
+            </p>
+
+        </div>
+    `;
+
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/plan-trip",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(data)
+            }
+        );
+
+
+        if (!response.ok) {
+            throw new Error("Backend request failed");
+        }
+
+
+        const result = await response.json();
+
+
+        /* Calculate budget percentage */
+
+        const budgetPercentage = Math.min(
+            Math.max(
+                (result.budget_summary.total_cost / result.budget) * 100,
+                0
+            ),
+            100
+        );
+
+
+        const budgetPercentageRounded =
+            Math.round(budgetPercentage);
+
+
+        /* Trip Overview */
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="result-card">
+
+                <h3>📍 Trip Overview</h3>
+
+                <div class="recommendation-list">
+
+                    <div class="recommendation-item">
+                        📍 <b>Destination:</b>
+                        ${result.destination}
+                    </div>
+
+                    <div class="recommendation-item">
+                        📅 <b>Travel Dates:</b>
+                        ${result.start_date}
+                        →
+                        ${result.end_date}
+                    </div>
+
+                    <div class="recommendation-item">
+                        🗓️ <b>Number of Days:</b>
+                        ${result.final_plan.number_of_days}
+                    </div>
+
+                    <div class="recommendation-item">
+                        💰 <b>Total Budget:</b>
+                        ₹${result.budget}
+                    </div>
+
+                    <div class="recommendation-item">
+                        💵 <b>Remaining Budget:</b>
+                        ₹${result.budget_summary.remaining_budget}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Transport -->
+
+            <div class="result-card">
+
+                <h3>🚗 Transport Agent</h3>
+
+                <p>
+                    ${result.transport.suggestion}
+                </p>
+
+                <div class="recommendation-list">
+
+                    ${result.transport.transport_options.map(option => `
+
+                        <div class="recommendation-item">
+                            🚗 ${option}
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+                <p class="cost">
+                    Estimated Cost:
+                    ₹${result.transport.estimated_cost}
+                </p>
+
+            </div>
+
+
+            <!-- Hotel -->
+
+            <div class="result-card">
+
+                <h3>🏨 Hotel Agent</h3>
+
+                <p>
+                    ${result.hotel.suggestion}
+                </p>
+
+                <div class="recommendation-list">
+
+                    ${result.hotel.recommended_areas.map(area => `
+
+                        <div class="recommendation-item">
+                            🏨 ${area}
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+                <p class="cost">
+                    Estimated Cost:
+                    ₹${result.hotel.estimated_cost}
+                </p>
+
+            </div>
+
+
+            <!-- Activities -->
+
+            <div class="result-card">
+
+                <h3>🏖️ Activity Agent</h3>
+
+                <p>
+                    ${result.activity.suggestion}
+                </p>
+
+                <div class="recommendation-list">
+
+                    ${result.activity.activities.map(item => `
+
+                        <div class="recommendation-item">
+                            🏖️ ${item}
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+                <p class="cost">
+                    Estimated Cost:
+                    ₹${result.activity.estimated_cost}
+                </p>
+
+            </div>
+
+
+            <!-- Food -->
+
+            <div class="result-card">
+
+                <h3>🍛 Food Agent</h3>
+
+                <p>
+                    ${result.food.suggestion}
+                </p>
+
+                <div class="recommendation-list">
+
+                    ${result.food.recommended_foods.map(food => `
+
+                        <div class="recommendation-item">
+                            🍛 ${food}
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+                <p class="cost">
+                    Estimated Cost:
+                    ₹${result.food.estimated_cost}
+                </p>
+
+            </div>
+
+
+            <!-- Budget -->
+
+            <div class="result-card">
+
+                <h3>💰 Budget Summary</h3>
+
+                <div class="recommendation-list">
+
+                    <div class="recommendation-item">
+                        💰 <b>Total Budget:</b>
+                        ₹${result.budget}
+                    </div>
+
+                    <div class="recommendation-item">
+                        💸 <b>Estimated Trip Cost:</b>
+                        ₹${result.budget_summary.total_cost}
+                    </div>
+
+                    <div class="recommendation-item">
+                        💵 <b>Remaining Budget:</b>
+                        ₹${result.budget_summary.remaining_budget}
+                    </div>
+
+                    <div class="recommendation-item">
+                        🛡️ <b>Emergency Reserve:</b>
+                        ₹${result.contingency.estimated_cost}
+                    </div>
+
+                </div>
+
+
+                <!-- Budget Progress -->
+
+                <div style="margin-top:20px;">
+
+                    <p>
+                        <b>Budget Usage</b>
+                    </p>
+
+                    <div class="progress-container">
+
+                        <div
+                            class="progress-bar"
+                            style="width:${budgetPercentage}%;">
+                        </div>
+
+                    </div>
+
+                    <p class="budget-text">
+                        ${budgetPercentageRounded}%
+                        of your budget is estimated to be used.
+                    </p>
+
+                </div>
+
+
+                ${
+                    result.budget_summary.remaining_budget >= 0
+                    ? `
+                        <p style="margin-top:15px; font-weight:bold;">
+                            ✅ Your trip is within the planned budget.
+                        </p>
+                    `
+                    : `
+                        <p style="margin-top:15px; font-weight:bold;">
+                            ⚠️ Your estimated trip cost exceeds the budget.
+                        </p>
+                    `
+                }
+
+            </div>
+
+
+            <!-- Contingency Agent -->
+
+            <div class="result-card">
+
+                <h3>🛡️ Contingency Agent</h3>
+
+                <p>
+                    ${result.contingency.suggestion}
+                </p>
+
+                <p class="cost">
+                    Emergency Reserve:
+                    ₹${result.contingency.estimated_cost}
+                </p>
+
+            </div>
+
+
+            <!-- Final Planner -->
+
+            <div class="result-card">
+
+                <h3>🧠 Final AI Travel Plan</h3>
+
+                <p>
+                    ${result.final_plan.message}
+                </p>
+
+                <p>
+                    <b>🛡️ Emergency Reserve:</b>
+                    ₹${result.final_plan.contingency}
+                </p>
+
+            </div>
+
+
+            <!-- Day-by-Day Itinerary -->
+
+            <div class="result-card">
+
+                <h3>📅 Day-by-Day Itinerary</h3>
+
+            </div>
+
+
+            ${result.final_plan.itinerary.map(day => `
+
+                <div class="result-card">
+
+                    <h3>
+                        ${day.day} — ${day.title}
+                    </h3>
+
+                    <ul>
+
+                        ${day.activities.map(item => `
+
+                            <li>
+                                ${item}
+                            </li>
+
+                        `).join("")}
+
+                    </ul>
+
+                </div>
+
+            `).join("")}
+
+        `;
+
+    }
+
+
+    catch (error) {
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="result-card error">
+
+                <h3>❌ Something went wrong</h3>
+
+                <p>
+                    Could not connect to the travel planner backend.
+                </p>
+
+                <p>
+                    Make sure your FastAPI server is running.
+                </p>
+
+            </div>
+
+        `;
+
+        console.error(error);
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
